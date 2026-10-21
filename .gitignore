@@ -1,0 +1,35 @@
+# ---------- 1. SECRETS ----------
+# Variables d'environnement locales
+.env
+# Variantes : .env.local, .env.production...
+.env.*
+# EXCEPTION : le modèle sans valeurs secrètes reste versionné
+!.env.example
+
+# ---------- 2. BACKEND : Maven ----------
+# Dossier de compilation 
+/backend/target/
+
+# ---------- 3. FRONTEND : npm / Vite ----------
+# Dépendances 
+/frontend/node_modules/
+# Résultat du build de Vite
+/frontend/dist/
+# Rapports de tests
+/frontend/coverage/
+
+# ---------- 4. LOGS ----------
+*.log
+
+# ---------- 5. IDE  ----------
+# Eclipse
+.project
+.classpath
+.settings/
+
+# VS Code
+.vscode/
+
+# ---------- 6. WINDOWS ----------
+Thumbs.db
+[Dd]esktop.ini
