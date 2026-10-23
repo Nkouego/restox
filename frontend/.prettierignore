@@ -1,0 +1,9 @@
+
+# Fichiers générés
+dist/
+
+# Dépendances installées
+node_modules/
+
+# Fichier de verrouillage npm
+package-lock.json
