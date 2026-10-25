@@ -65,4 +65,4 @@ jobs:
           cache-dependency-path: backend/pom.xml
 
       - name: Build and test backend 
-        run: ./mvnw -ntp clean verify            
+        run:  chmod +x mvnw && ./mvnw -ntp clean verify            
