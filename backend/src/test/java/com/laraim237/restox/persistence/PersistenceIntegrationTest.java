@@ -86,7 +86,7 @@ public class PersistenceIntegrationTest {
 		entityManager.flush();
 		entityManager.clear();
 
-		Role found = roleRepository.findById(role.getId()).orElseThrow();
+		Role found = roleRepository.findByIdAndRestaurantId(role.getId(), restaurant.getId()).orElseThrow();
 		assertThat(found.getPermissions()).hasSize(1);
 		assertThat(found.getPermissions().iterator().next().getCode()).isEqualTo("MENU_VIEW");
 
