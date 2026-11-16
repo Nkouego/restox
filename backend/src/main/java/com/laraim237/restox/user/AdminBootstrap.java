@@ -1,5 +1,7 @@
 package com.laraim237.restox.user;
 
+import java.util.HashSet;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -17,7 +19,10 @@ public class AdminBootstrap implements ApplicationRunner {
 
 	private static final int MIN_PASSWORD_LENGTH = 12;
 	
+	private static final String PLATFORM_PERMISSION_PREFIX = "PLATFORM_";
+	
 	private final UserRepository userRepository;
+	private final PermissionRepository permissionRepository;
 	private final PasswordEncoder passwordEncoder;
 
 	@Value("${app.bootstrap.admin.email:}")
@@ -64,6 +69,7 @@ public class AdminBootstrap implements ApplicationRunner {
 				.role(null)
 				.platformAdmin(true)
 				.active(true)
+				.directPermissions(new HashSet<>(permissionRepository.findByCodeStartingWith(PLATFORM_PERMISSION_PREFIX)))
 				.build();
 
 		userRepository.save(admin);

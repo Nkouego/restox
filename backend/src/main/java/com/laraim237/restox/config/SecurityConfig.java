@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,9 +24,11 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
+import com.laraim237.restox.auth.JwtPermissionsConverter;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
 	@Value("${app.security.jwt.secret}")
@@ -34,15 +37,18 @@ public class SecurityConfig {
 	public static final MacAlgorithm HS_ALGORITHM = MacAlgorithm.HS256;
 
 	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	public SecurityFilterChain filterChain(HttpSecurity http, JwtPermissionsConverter jwtPermissionsConverter)
+			throws Exception {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(
 						auth -> auth.requestMatchers("/api/v1/auth/login", "/api/v1/test", "/actuator/health/**")
 								.permitAll().anyRequest().authenticated())
 				.exceptionHandling(exception -> exception
-						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
-
+						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+				.oauth2ResourceServer(
+						oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtPermissionsConverter)
+						));
 		return http.build();
 
 	}
