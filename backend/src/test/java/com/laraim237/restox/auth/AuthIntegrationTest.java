@@ -1,8 +1,11 @@
 package com.laraim237.restox.auth;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.HashSet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +21,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import com.jayway.jsonpath.JsonPath;
 import com.laraim237.restox.audit.AuditLogRepository;
+import com.laraim237.restox.user.PermissionRepository;
 import com.laraim237.restox.user.User;
 import com.laraim237.restox.user.UserRepository;
 
@@ -37,6 +42,7 @@ class AuthIntegrationTest {
 	@Autowired private MockMvc mockMvc;
 	@Autowired private UserRepository userRepository;
 	@Autowired private AuditLogRepository auditLogRepository;
+	@Autowired private PermissionRepository permissionRepository;
 	@Autowired private PasswordEncoder passwordEncoder;
 
 	@BeforeEach
@@ -49,6 +55,7 @@ class AuthIntegrationTest {
 				.passwordHash(passwordEncoder.encode(PASSWORD))
 				.platformAdmin(true)
 				.active(true)
+				.directPermissions(new HashSet<>(permissionRepository.findByCodeStartingWith("PLATFORM_")))
 				.build());
 	}
 
@@ -109,5 +116,32 @@ class AuthIntegrationTest {
 		login("", PASSWORD)
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errors").exists());
+	}
+	
+	@Test
+	void shouldRejectMeWithoutToken()throws Exception {
+		mockMvc.perform(get("/api/v1/auth/me"))
+		.andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	void shouldRejectMeWithForgetToken()throws Exception {
+		mockMvc.perform(get("/api/v1/auth/me").header("Authorization", "Bearer abc.def.ghi"))
+		.andExpect(status().isUnauthorized());
+	}
+	
+	@Test
+	void shouldReturnCurrentUserWithPermissions() throws Exception{ 
+		
+		String body = login(EMAIL, PASSWORD).andReturn().getResponse().getContentAsString();
+		
+		String token = JsonPath.read(body, "$.accessToken");
+		
+		mockMvc.perform(get("/api/v1/auth/me").header("Authorization", "Bearer " + token))
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.email").value(EMAIL))
+		.andExpect(jsonPath("$.platformAdmin").value(true))
+		.andExpect(jsonPath("$.restaurant").isEmpty())
+		.andExpect(jsonPath("$.permissions").isNotEmpty());
 	}
 }	
