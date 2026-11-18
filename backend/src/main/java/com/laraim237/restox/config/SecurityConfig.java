@@ -41,14 +41,16 @@ public class SecurityConfig {
 			throws Exception {
 		http.csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(
-						auth -> auth.requestMatchers("/api/v1/auth/login", "/api/v1/test", "/actuator/health/**")
-								.permitAll().anyRequest().authenticated())
+				.authorizeHttpRequests(auth -> auth.requestMatchers(
+						"/api/v1/auth/login", 
+						"/api/v1/test",
+						"/actuator/health/**", 
+						"/api/v1/auth/refresh",
+						"/api/v1/auth/logout").permitAll().anyRequest().authenticated())
 				.exceptionHandling(exception -> exception
 						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
 				.oauth2ResourceServer(
-						oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtPermissionsConverter)
-						));
+						oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtPermissionsConverter)));
 		return http.build();
 
 	}
