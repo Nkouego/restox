@@ -22,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 	
 	@EntityGraph(attributePaths = "restaurant")
 	Optional<User> findWithRestaurantById(UUID userId);
+
+	boolean existsByEmailIgnoreCase(String managerEmail);
 }

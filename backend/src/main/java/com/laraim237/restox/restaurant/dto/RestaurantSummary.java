@@ -1,5 +1,7 @@
 package com.laraim237.restox.restaurant.dto;
 
-public record RestaurantSummary() {
+import java.util.UUID;
 
-}
+public record RestaurantSummary(
+		UUID id, 
+		String name) {}

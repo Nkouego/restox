@@ -42,6 +42,7 @@ class AuthIntegrationTest {
 
 	private static final String EMAIL = "admin@test.local";
 	private static final String PASSWORD = "correct-password-123";
+	private String COOKIE = RefreshCookieFactory.COOKIE_NAME; 
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -145,9 +146,10 @@ class AuthIntegrationTest {
 
 	@Test
 	void shouldSetSecureRefreshCookieOnLogin() throws Exception {
-		login(EMAIL, PASSWORD).andExpect(status().isOk()).andExpect(cookie().exists("restox_refresh"))
-				.andExpect(cookie().httpOnly("restox_refresh", true))
-				.andExpect(cookie().path("restox_refresh", "/api/v1/auth"));
+		login(EMAIL, PASSWORD).andExpect(status().isOk()).andExpect(cookie().exists(COOKIE))
+				.andExpect(cookie().httpOnly(COOKIE, true))
+				.andExpect(jsonPath("$.refreshToken").doesNotExist())
+				.andExpect(cookie().path(COOKIE, "/api/v1/auth"));
 	}
 
 	@Test
@@ -157,7 +159,7 @@ class AuthIntegrationTest {
 		Cookie newCookie = mockMvc.perform(post("/api/v1/auth/refresh").cookie(oldCookie))
 				.andExpect(status().isOk()).andExpect(jsonPath("$.accessToken").isNotEmpty())
 				.andExpect(jsonPath("$.tokenType").value("Bearer")).andReturn().getResponse()
-				.getCookie("restox_refresh");
+				.getCookie(COOKIE);
 
 		assertThat(newCookie).isNotNull();
 
@@ -171,7 +173,7 @@ class AuthIntegrationTest {
 
 		Cookie second = mockMvc.perform(post("/api/v1/auth/refresh").cookie(first))
 				.andExpect(status().isOk())
-				.andReturn().getResponse().getCookie("restox_refresh");
+				.andReturn().getResponse().getCookie(COOKIE);
 		
 		assertThat(second).isNotNull();
 
@@ -190,7 +192,7 @@ class AuthIntegrationTest {
 
 	    // 2. Cookie invalide envoyé
 	    mockMvc.perform(post("/api/v1/auth/refresh")
-	            .cookie(new Cookie("restox_refresh", "bad-token")))
+	            .cookie(new Cookie(COOKIE, "bad-token")))
 	        .andExpect(status().isUnauthorized());
 	}
 	
@@ -200,7 +202,7 @@ class AuthIntegrationTest {
 		
 		Cookie clearedCookie = mockMvc.perform(post("/api/v1/auth/logout").cookie(oldCookie))
 				.andExpect(status().isNoContent())
-				.andReturn().getResponse().getCookie("restox_refresh");
+				.andReturn().getResponse().getCookie(COOKIE);
 		
 		assertThat(clearedCookie).isNotNull();
 		assertThat(clearedCookie.getMaxAge()).isZero();
@@ -225,6 +227,6 @@ class AuthIntegrationTest {
 	}
 	
 	private Cookie loginAndGetRefreshCookie() throws Exception {
-		return login(EMAIL, PASSWORD).andExpect(status().isOk()).andReturn().getResponse().getCookie("restox_refresh");
+		return login(EMAIL, PASSWORD).andExpect(status().isOk()).andReturn().getResponse().getCookie(COOKIE);
 	}
 }

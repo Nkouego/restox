@@ -44,6 +44,16 @@ public class GlobalExceptionHandler {
 	public ProblemDetail handleDisabled() {
 		return problem(HttpStatus.FORBIDDEN, MSG_ACCOUNT_DISABLED, CODE_ACCOUNT_DISABLED);
 	}
+	
+	@ExceptionHandler(ConflictException.class)
+	public ProblemDetail handleConflict(ConflictException ex) {
+		return problem(HttpStatus.CONFLICT, ex.getMessage(), ex.getCode());
+	}
+	
+	@ExceptionHandler(NotFoundException.class)
+	public ProblemDetail handleNotFound(NotFoundException ex) {
+		return problem(HttpStatus.NOT_FOUND, ex.getMessage(), ex.getCode());
+	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
