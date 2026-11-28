@@ -13,12 +13,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PermissionService {
 	
+	private final UserRepository userRepository;
 	private final PermissionRepository permissionRepository;
 
 	@Cacheable(cacheNames = "permissions", key = "#userId")
-	public Set<String> loadPermissionCodes(UUID userId){
+	public Set<String> loadPermissionCodes(UUID userId) {
+		User user = userRepository.findWithRestaurantById(userId).orElse(null);
+
+		if (user == null
+				|| !user.isActive()
+				|| (!user.isPlatformAdmin() && !user.getRestaurant().isActive())) {
+			return Set.of();
+		}
+
 		Set<String> codes = new HashSet<>(permissionRepository.findCodesFromRole(userId));
-		codes.addAll(new HashSet<>(permissionRepository.findCodesFromDirectPermissions(userId)));
+		codes.addAll(permissionRepository.findCodesFromDirectPermissions(userId));
 		return Set.copyOf(codes);
 	}
 }

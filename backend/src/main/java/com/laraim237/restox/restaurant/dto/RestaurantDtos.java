@@ -18,6 +18,11 @@ public final class RestaurantDtos {
 			@NotBlank @Size(max = 150) String managerFullName,
 			@NotBlank @Email @Size(max = 255) String managerEmail) {
 	}
+	
+	public record UpdateRestaurantRequest(
+			@Size(min = 1, max = 150) String name,
+			@Size(max = 1000) String description,
+			@Size(max = 500) String photoUrl) {}
 
 	public record RestaurantResponse(
 			UUID id,
@@ -26,5 +31,10 @@ public final class RestaurantDtos {
 			String photoUrl,
 			boolean active,
 			Instant createdAt) {
+	}
+	
+	public record RestaurantFilterRequest(
+			@Size(max = 150) String name,
+			Boolean active) {
 	}
 }

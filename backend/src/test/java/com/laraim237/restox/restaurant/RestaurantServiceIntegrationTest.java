@@ -11,12 +11,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import com.laraim237.restox.common.exception.ConflictException;
 import com.laraim237.restox.restaurant.dto.RestaurantDtos.CreateRestaurantRequest;
+import com.laraim237.restox.restaurant.dto.RestaurantDtos.RestaurantFilterRequest;
 import com.laraim237.restox.restaurant.dto.RestaurantDtos.RestaurantResponse;
 import com.laraim237.restox.user.PermissionRepository;
 import com.laraim237.restox.user.Role;
@@ -80,7 +83,7 @@ public class RestaurantServiceIntegrationTest {
 		
 		var codes = permissionRepository.findCodesFromRole(manager.getId());
 
-		assertThat(codes).hasSize(8);
+		assertThat(codes).hasSize(9);
 		assertThat(codes).noneMatch(code -> code.startsWith("PLATFORM_"));
 	}
 	
@@ -92,5 +95,20 @@ public class RestaurantServiceIntegrationTest {
 
 		assertThatThrownBy(() -> restaurantService.createWithManager(request(email)))
 				.isInstanceOf(ConflictException.class);
+	}
+	
+	@Test
+	void list_filtersByNameAndActive() {
+		 String token = UUID.randomUUID().toString().substring(0, 8);
+		 
+		 restaurantRepository.save(Restaurant.builder().name("Alpha " + token).active(true).build());
+		 restaurantRepository.save(Restaurant.builder().name("Beta " + token).active(true).build());
+		 restaurantRepository.save(Restaurant.builder().name("Gamma " + token).active(false).build());
+		 
+		 Pageable page = PageRequest.of(0, 10);
+		 
+		 assertThat(restaurantService.list(new RestaurantFilterRequest(token, null), page).getTotalElements()).isEqualTo(3);
+		 assertThat(restaurantService.list(new RestaurantFilterRequest(token, true), page).getTotalElements()).isEqualTo(2);
+		 assertThat(restaurantService.list(new RestaurantFilterRequest(token, false), page).getTotalElements()).isEqualTo(1);
 	}
 }

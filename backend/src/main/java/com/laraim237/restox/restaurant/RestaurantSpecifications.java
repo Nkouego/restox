@@ -11,7 +11,7 @@ public class RestaurantSpecifications {
 		return (root, query, cb) -> cb.equal(root.get("active"), active);
 	}
 
-	public static Specification<Restaurant> nameContains(String name){
+	public static Specification<Restaurant> containsName(String name){
 		return (root, query, cb) -> cb.like(cb.lower(root.get("name")), "%" +name.toLowerCase()+ "%");
 	}
 }
